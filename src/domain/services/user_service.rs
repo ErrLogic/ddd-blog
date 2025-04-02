@@ -14,6 +14,7 @@ use crate::shared::error::ApiError;
 #[async_trait]
 pub trait UserService: Send + Sync {
     async fn find(&self, id: Uuid) -> Result<User, ApiError>;
+    async fn find_all(&self) -> Result<Vec<User>, ApiError>;
     async fn find_by_email(&self, email: &str) -> Result<User, ApiError>;
     async fn create(&self, user: CreateUser) -> Result<User, ApiError>;
     async fn update(&self, id: Uuid, user: UpdateUser) -> Result<User, ApiError>;
@@ -33,6 +34,10 @@ impl<R: UserRepository + Send + Sync + 'static> UserServiceImpl<R> {
 
 #[async_trait]
 impl<R: UserRepository + Send + Sync + 'static> UserService for Arc<UserServiceImpl<R>> {
+    async fn find_all(&self) -> Result<Vec<User>, ApiError> {
+        self.repository.find_all().await
+    }
+
     async fn find(&self, id: Uuid) -> Result<User, ApiError> {
         self.repository.find(id).await
     }

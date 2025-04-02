@@ -27,6 +27,7 @@ where
 
     Router::new()
         .route("/", post(create_user))
+        .route("/", get(get_all_users))
         .route("/:id", get(get_user))
         .route("/:id", put(update_user))
         .route("/:id", delete(delete_user))
@@ -43,6 +44,17 @@ where
 {
     let user = state.user_service.find(id).await?;
     Ok(Json(UserResponse::from(user)))
+}
+
+async fn get_all_users<S>(
+    State(state): State<UserRouterState<S>>,
+) -> Result<impl IntoResponse, ApiError>
+where
+    S: UserService,
+{
+    let users = state.user_service.find_all().await?; // Fetch all users
+    let response: Vec<UserResponse> = users.into_iter().map(UserResponse::from).collect();
+    Ok(Json(response))
 }
 
 async fn get_user_by_email<S>(

@@ -39,6 +39,20 @@ impl UserRepository for UserRepositoryImpl {
             .map_err(|e| ApiError::DatabaseError(e.to_string()))
     }
 
+    async fn find_all(&self) -> Result<Vec<User>, ApiError> {
+        use crate::infrastructure::database::schema::users::dsl::*;
+
+        let mut conn = self
+            .pool
+            .get()
+            .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+
+        users
+            .select(User::as_select())
+            .load(&mut conn)
+            .map_err(|e| ApiError::DatabaseError(e.to_string()))
+    }
+
     async fn find_by_email(&self, _email: &str) -> Result<User, ApiError> {
         use crate::infrastructure::database::schema::users::dsl::*;
 
@@ -117,6 +131,10 @@ impl UserRepository for UserRepositoryImpl {
 impl UserRepository for Arc<UserRepositoryImpl> {
     async fn find(&self, id: Uuid) -> Result<User, ApiError> {
         self.as_ref().find(id).await
+    }
+
+    async fn find_all(&self) -> Result<Vec<User>, ApiError> {
+        self.as_ref().find_all().await
     }
 
     async fn find_by_email(&self, email: &str) -> Result<User, ApiError> {

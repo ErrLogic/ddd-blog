@@ -16,6 +16,7 @@ pub trait PostRepository: Send + Sync {
 #[async_trait]
 pub trait UserRepository: Send + Sync {
     async fn find(&self, id: Uuid) -> Result<User, ApiError>;
+    async fn find_all(&self) -> Result<Vec<User>, ApiError>;
     async fn find_by_email(&self, email: &str) -> Result<User, ApiError>;
     async fn create(&self, user: User) -> Result<User, ApiError>;
     async fn update(&self, id: Uuid, user: User) -> Result<User, ApiError>;
