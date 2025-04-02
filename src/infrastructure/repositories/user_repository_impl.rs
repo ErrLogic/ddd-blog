@@ -79,7 +79,7 @@ impl UserRepository for UserRepositoryImpl {
         let new_user = NewUser {
             username: user.username,
             email: user.email,
-            password_hash: user.password_hash,
+            password_hash: user.password_hash, // Already hashed by the domain model
         };
 
         diesel::insert_into(users)
@@ -100,7 +100,7 @@ impl UserRepository for UserRepositoryImpl {
         let update_data = UpdateUserData {
             username: Some(user.username),
             email: Some(user.email),
-            password_hash: Some(user.password_hash),
+            password_hash: Some(user.password_hash), // Already hashed by the domain model
             updated_at: Some(chrono::Local::now().naive_local()),
         };
 

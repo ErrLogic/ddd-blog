@@ -25,3 +25,6 @@ async-trait = "0.1"
 anyhow = "1.0.97"
 argon2 = { version = "0.5", features = ["std"] }
 rand_core = "0.6"
+jsonwebtoken = "8.3"
+futures = "0.3"
+cookie = "0.16"

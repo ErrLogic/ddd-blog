@@ -1,8 +1,6 @@
 use std::sync::Arc;
 
-use argon2::{Argon2, PasswordHasher, password_hash::SaltString};
 use async_trait::async_trait;
-use rand_core::OsRng;
 use uuid::Uuid;
 
 use crate::domain::{
@@ -47,27 +45,7 @@ impl<R: UserRepository + Send + Sync + 'static> UserService for Arc<UserServiceI
     }
 
     async fn create(&self, user: CreateUser) -> Result<User, ApiError> {
-        // Generate a random salt
-        let salt = SaltString::generate(&mut OsRng);
-
-        // Configure Argon2 with default parameters
-        let argon2 = Argon2::default();
-
-        // Hash the password
-        let password_hash = argon2
-            .hash_password(user.password.as_bytes(), &salt)
-            .map_err(|_e| ApiError::InternalServerError)?
-            .to_string();
-
-        let new_user = User {
-            id: Uuid::new_v4(),
-            username: user.username,
-            email: user.email,
-            password_hash: password_hash,
-            created_at: chrono::Local::now().naive_local(),
-            updated_at: chrono::Local::now().naive_local(),
-        };
-
+        let new_user = User::new(user.username, user.email, user.password)?;
         self.repository.create(new_user).await
     }
 
@@ -83,23 +61,10 @@ impl<R: UserRepository + Send + Sync + 'static> UserService for Arc<UserServiceI
         }
 
         if let Some(password) = user.password {
-            // Generate a random salt
-            let salt = SaltString::generate(&mut OsRng);
-
-            // Configure Argon2 with default parameters
-            let argon2 = Argon2::default();
-
-            // Hash the password - we already have it unwrapped in this block
-            let password_hash = argon2
-                .hash_password(password.as_bytes(), &salt)
-                .map_err(|_e| ApiError::InternalServerError)?
-                .to_string();
-
-            existing_user.password_hash = password_hash;
+            existing_user.update_password(password)?;
         }
 
         existing_user.updated_at = chrono::Local::now().naive_local();
-
         self.repository.update(id, existing_user).await
     }
 
